@@ -1,0 +1,108 @@
+apiVersion: backstage.io/v1alpha1
+kind: System
+metadata:
+  name: platform-runtime
+  description: Kubernetes runtime control plane for RedKnot platform services.
+  annotations:
+    backstage.io/source-location: url:https://github.com/codecargo-demo-internal/jenkins-operator-go/
+  tags:
+    - kubernetes
+    - go
+spec:
+  owner: group:team-platform
+  domain: platform-engineering
+---
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: jenkins-operator
+  description: Go Kubernetes operator reconciling RedKnot custom resources (client-go, apimachinery).
+  annotations:
+    github.com/project-slug: codecargo-demo-internal/jenkins-operator-go
+    backstage.io/source-location: url:https://github.com/codecargo-demo-internal/jenkins-operator-go/
+    backstage.io/techdocs-ref: dir:.
+    backstage.io/kubernetes-id: jenkins-operator
+    jenkins.io/job-full-name: Platform/Operator/operator-ci
+  tags:
+    - go
+    - golang
+    - kubernetes
+    - operator
+  links:
+    - url: https://github.com/codecargo-demo-internal/jenkins-operator-go/
+      title: Source
+      icon: github
+spec:
+  type: service
+  lifecycle: production
+  owner: group:team-platform
+  system: platform-runtime
+  providesApis:
+    - operator-health-api
+  dependsOn:
+    - resource:operator-state-store
+---
+apiVersion: backstage.io/v1alpha1
+kind: API
+metadata:
+  name: operator-health-api
+  description: Health probe served by the operator on :8080.
+  tags:
+    - openapi
+    - health
+spec:
+  type: openapi
+  lifecycle: production
+  owner: group:team-platform
+  system: platform-runtime
+  definition: |
+    openapi: 3.0.3
+    info:
+      title: Operator Health API
+      version: 1.0.0
+    paths:
+      /health:
+        get:
+          summary: Operator health
+          responses:
+            '200': { description: Healthy }
+---
+apiVersion: backstage.io/v1alpha1
+kind: Resource
+metadata:
+  name: operator-state-store
+  description: "[demo/invented] Reconciliation state and leader-election store for the operator."
+  tags:
+    - cache
+    - kubernetes
+    - invented
+spec:
+  type: cache
+  owner: group:team-platform
+  system: platform-runtime
+---
+apiVersion: backstage.io/v1alpha1
+kind: Group
+metadata:
+  name: team-platform
+  description: Platform team owning the Kubernetes operator and core platform services.
+spec:
+  type: team
+  profile:
+    displayName: Platform Team
+    email: platform@redknot-enterprises.com
+  parent: engineering
+  children: []
+  members:
+    - tcole
+---
+apiVersion: backstage.io/v1alpha1
+kind: User
+metadata:
+  name: tcole
+spec:
+  profile:
+    displayName: Tomas Cole
+    email: tomas.cole@redknot-enterprises.com
+  memberOf:
+    - team-platform
